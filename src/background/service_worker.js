@@ -22,8 +22,10 @@ let tabCreationPromise = null;
 // Queue for chunks to be summarized
 // Each item will be { videoId, chunkId, text, originalSegments, retryCount }
 let chunkQueue = [];
-let isProcessingChunk = false; // True if a chunk is currently being sent to ChatGPT or awaiting its response
-let currentProcessingChunk = null; // Stores the full chunk object being processed { videoId, chunkId, text, originalSegments, retryCount }
+/** @type {boolean} Flag to indicate if a chunk is currently being processed (sent to ChatGPT and awaiting response). */
+let isProcessingChunk = false;
+/** @type {{videoId: string, chunkId: string, text: string, originalSegments: any[], retryCount: number} | null} Stores the full chunk object currently being processed. */
+let currentProcessingChunk = null;
 
 // --- Tab Management ---
 
@@ -59,6 +61,15 @@ function waitForTabLoad(tabId) {
   });
 }
 
+/**
+ * Ensures that a tab for ChatGPT is open, loaded, and ready for interaction.
+ * Manages a single ChatGPT tab identified by `chatGPTTabId`.
+ * If no tab exists, or the existing one is closed, it creates a new one.
+ * It then sends a "CHECK_CHATGPT_READY" message to the content script in that tab
+ * to ensure the page is interactable (e.g., modals are dismissed).
+ * Implements retry logic for readiness checks.
+ * @returns {Promise<number | null>} Resolves with the tab ID if successful, or null/rejects on failure.
+ */
 async function ensureChatGPTTab() {
   if (tabCreationPromise) {
     console.log("ChatGPT tab creation/validation is already in progress.");
@@ -205,6 +216,10 @@ chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
 
 
 // --- Message Handling ---
+/**
+ * Listener for messages from other parts of the extension (content scripts, popup).
+ * Handles various actions like receiving transcripts, errors, summaries, and UI commands.
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "transcript_data") {
     console.log(`Received transcript data for video ID: ${message.videoId}`);
@@ -489,6 +504,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // processChunksSequentially is effectively replaced by adding to queue in transcript_data handler
 // and calling processNextChunk.
 
+/**
+ * Processes the next chunk in the `chunkQueue`.
+ * - Checks if processing is paused or if another chunk is already being processed.
+ * - Ensures the ChatGPT tab is ready using `ensureChatGPTTab`.
+ * - Updates the chunk's status to 'processing' in IndexedDB.
+ * - Sends the chunk text to `chatgpt_interactor.js` for summarization.
+ * - Handles errors during this process, including re-queuing chunks for retry.
+ */
 async function processNextChunk() {
   if (isProcessingPaused || chatGPTTabStatus !== 'ready' || isProcessingChunk || chunkQueue.length === 0) {
     if(isProcessingPaused) console.log("Processing is paused. processNextChunk will not proceed.");

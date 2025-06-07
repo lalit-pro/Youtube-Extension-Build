@@ -4,11 +4,23 @@
   "description": "Chrome extension to summarize YouTube transcripts",
   "scripts": {
     "dev": "parcel src/ui/popup.html --out-dir dist/ui --public-url ./",
-    "build": "parcel build src/ui/popup.html --out-dir dist/ui --public-url ./ --no-source-maps",
-    "watch:js": "parcel watch src/background/service_worker.js src/content_scripts/youtube_transcript_fetcher.js src/content_scripts/chatgpt_interactor.js src/utils/transcript_chunker.js src/utils/indexeddb_helper.js --out-dir dist --public-url ./ --no-source-maps",
-    "build:js": "parcel build src/background/service_worker.js src/content_scripts/youtube_transcript_fetcher.js src/content_scripts/chatgpt_interactor.js src/utils/transcript_chunker.js src/utils/indexeddb_helper.js --out-dir dist --public-url ./ --no-source-maps",
-    "build:all": "npm run build && npm run build:js && npm run copy:assets",
-    "copy:assets": "cp manifest.json dist/manifest.json && cp -r icons dist/icons"
+    "build:ui": "parcel build src/ui/popup.html --out-dir dist/ui --public-url ./ --no-source-maps",
+
+    "build:sw": "parcel build src/background/service_worker.js --out-dir dist/src --out-file service_worker.js --global globalThis --target browser --no-source-maps --bundle-node-modules",
+    "watch:sw": "parcel watch src/background/service_worker.js --out-dir dist/src --out-file service_worker.js --global globalThis --target browser --no-source-maps --bundle-node-modules",
+
+    "build:cs:youtube": "parcel build src/content_scripts/youtube_transcript_fetcher.js --out-dir dist/src --out-file youtube_transcript_fetcher.js --global globalThis --target browser --no-source-maps --bundle-node-modules",
+    "watch:cs:youtube": "parcel watch src/content_scripts/youtube_transcript_fetcher.js --out-dir dist/src --out-file youtube_transcript_fetcher.js --global globalThis --target browser --no-source-maps --bundle-node-modules",
+
+    "build:cs:chatgpt": "parcel build src/content_scripts/chatgpt_interactor.js --out-dir dist/src --out-file chatgpt_interactor.js --global globalThis --target browser --no-source-maps --bundle-node-modules",
+    "watch:cs:chatgpt": "parcel watch src/content_scripts/chatgpt_interactor.js --out-dir dist/src --out-file chatgpt_interactor.js --global globalThis --target browser --no-source-maps --bundle-node-modules",
+
+    "build:js": "npm run build:sw && npm run build:cs:youtube && npm run build:cs:chatgpt",
+    "watch:js": "npm-run-all --parallel watch:sw watch:cs:youtube watch:cs:chatgpt",
+
+    "prebuild:all": "mkdir -p dist/src dist/ui dist/icons",
+    "build:all": "npm run prebuild:all && npm run build:ui && npm run build:js && npm run copy:assets",
+    "copy:assets": "cp manifest.json dist/manifest.json && cp -r icons/* dist/icons/ && cp src/offscreen/offscreen.html dist/offscreen/offscreen.html && cp src/offscreen/offscreen.js dist/offscreen/offscreen.js"
   },
   "dependencies": {
     "react": "^17.0.2",
@@ -19,6 +31,7 @@
     "@types/react": "^17.0.30",
     "@types/react-dom": "^17.0.10",
     "autoprefixer": "^9.8.8",
+    "npm-run-all": "^4.1.5",
     "parcel-bundler": "^1.12.5",
     "postcss": "^7.0.39",
     "tailwindcss": "^2.2.19",

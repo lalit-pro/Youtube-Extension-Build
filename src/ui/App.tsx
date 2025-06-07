@@ -3,13 +3,28 @@ import React, { useEffect, useState, useCallback } from 'react';
 import type { VideoTranscriptData } from '../utils/indexeddb_helper'; // Adjust path if needed
 import ChunkList from './components/ChunkList'; // Adjust path if needed
 
+/**
+ * Main application component for the popup UI.
+ * Displays a list of processed videos and their summarization status.
+ * Allows users to view chunks and their summaries for a selected video.
+ * Provides controls for pausing/resuming processing and exporting summaries.
+ */
 const App: React.FC = () => {
+  /** State for storing all video transcript data objects. */
   const [videos, setVideos] = useState<VideoTranscriptData[]>([]);
+  /** State for the ID of the currently selected video for detail view. */
   const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+  /** State to indicate if data is currently being loaded. */
   const [loading, setLoading] = useState<boolean>(true);
+  /** State to store any error messages for display. */
   const [error, setError] = useState<string | null>(null);
+  /** State to track if background processing is paused. */
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
+  /**
+   * Fetches all video transcript data from the background script.
+   * Updates the `videos` state and handles loading/error states.
+   */
   const fetchAllVideoData = useCallback(() => {
     if (chrome.runtime && chrome.runtime.sendMessage) {
       chrome.runtime.sendMessage({ type: "GET_ALL_VIDEO_DATA" }, (response) => {
@@ -47,6 +62,10 @@ const App: React.FC = () => {
     }
   }, []);
 
+  /**
+   * Effect hook to fetch initial data and set up message listeners for real-time updates.
+   * Also fetches the initial pause state.
+   */
   useEffect(() => {
     setLoading(true);
     fetchAllVideoData();
