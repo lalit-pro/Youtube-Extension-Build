@@ -1,0 +1,27 @@
+{
+  "name": "youtube-transcript-summarizer",
+  "version": "0.1.0",
+  "description": "Chrome extension to summarize YouTube transcripts",
+  "scripts": {
+    "dev": "parcel src/ui/popup.html --out-dir dist/ui --public-url ./",
+    "build": "parcel build src/ui/popup.html --out-dir dist/ui --public-url ./ --no-source-maps",
+    "watch:js": "parcel watch src/background/service_worker.js src/content_scripts/youtube_transcript_fetcher.js src/content_scripts/chatgpt_interactor.js src/utils/transcript_chunker.js src/utils/indexeddb_helper.js --out-dir dist --public-url ./ --no-source-maps",
+    "build:js": "parcel build src/background/service_worker.js src/content_scripts/youtube_transcript_fetcher.js src/content_scripts/chatgpt_interactor.js src/utils/transcript_chunker.js src/utils/indexeddb_helper.js --out-dir dist --public-url ./ --no-source-maps",
+    "build:all": "npm run build && npm run build:js && npm run copy:assets",
+    "copy:assets": "cp manifest.json dist/manifest.json && cp -r icons dist/icons"
+  },
+  "dependencies": {
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.170",
+    "@types/react": "^17.0.30",
+    "@types/react-dom": "^17.0.10",
+    "autoprefixer": "^9.8.8",
+    "parcel-bundler": "^1.12.5",
+    "postcss": "^7.0.39",
+    "tailwindcss": "^2.2.19",
+    "typescript": "^4.5.0"
+  }
+}

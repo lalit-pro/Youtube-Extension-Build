@@ -1,0 +1,12 @@
+/* src/ui/popup.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: sans-serif;
+  width: 350px; /* Slightly wider for more content */
+  height: 500px;
+  margin: 0;
+  padding: 0;
+}
